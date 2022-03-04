@@ -1,0 +1,119 @@
+-- Question 1
+
+drop table examd_mutual_fund_clients;
+drop table examd_mutual_fund;
+drop table examd_fund_company;
+drop table examd_client;
+
+CREATE TABLE examd_client (
+client# NUMBER CONSTRAINT examd_client_PK PRIMARY KEY,
+email_address VARCHAR2(5) CONSTRAINT email_address_UK UNIQUE); 
+
+CREATE TABLE examd_fund_company (
+fund_company_code VARCHAR2(6),
+name VARCHAR2(50),
+area_code NUMBER(3),
+phone_number NUMBER(7));
+
+CREATE TABLE examd_mutual_fund (
+mutual_fun_code VARCHAR2(10),
+fund_company_code VARCHAR2(6),
+fund_name VARCHAR2(40),
+fund_type CHAR (1),
+mer NUMBER (6,2));
+
+drop table examd_mutual_fund_clients;
+
+
+CREATE TABLE examd_mutual_fund_clients (
+client# NUMBER  ,
+mutual_fun_code VARCHAR2 (10) ,
+date_purchased DATE NOT NULL ,
+units_purchased  NUMBER(10,4),
+
+CONSTRAINT examd_mutual_fund_clients_PK PRIMARY KEY (client#),
+CONSTRAINT examd_mutual_fund_clients_FK FOREIGN key (client#) REFERENCES examd_client  (client#),
+CONSTRAINT units_purchased_CK CHECK (units_purchased  >0 )
+);
+
+ALTER TABLE examd_fund_company 
+MODIFY area_code NOT NULL
+MODIFY phone_number NOT NULL
+ADD CONSTRAINT examd_fund_company_PK primary key (fund_company_code);
+
+
+ALTER TABLE examd_mutual_fund 
+ADD CONSTRAINT examd_mutual_fund_FK FOREIGN KEY  (fund_company_code) REFERENCES examd_fund_company (fund_company_code)
+ADD CONSTRAINT MER_CK CHECK (mer >= 0.0)
+ADD CONSTRAINT fund_type_CK CHECK (fund_type in ('S','B','L','I'));
+
+-- Question 2
+CREATE TABLE GHC_COURSE (
+course_code CHAR (7) primary key,
+course_title VARCHAR2(50) not null,
+credits NUMBER(2) not null check (credits BETWEEN 1 and 9)
+);
+
+CREATE TABLE GHC_DEPARTMENT (
+Dept_no NUMBER primary key,
+Dept_name VARCHAR2(20) not null unique
+);
+
+CREATE TABLE GHC_FACULTY (
+Faculty_id NUMBER primary key,
+Surname VARCHAR2(50) not null, 
+Firstname VARCHAR2(50) not null, 
+date_hired DATE not null,
+date_fired DATE,
+is_active NUMBER(1) not null check (is_active BETWEEN 0 and 1),
+Dept_no NUMBER ,
+Constraint Dept_no_FK FOREIGN KEY (Dept_no) REFERENCES GHC_DEPARTMENT (Dept_no)
+);
+
+CREATE TABLE GHC_EXPERTISE (
+Faculty_id Number  ,
+course_code CHAR (7) ,
+primary key (Faculty_id, course_code),
+Constraint Facaulty_id_FK FOREIGN KEY (Faculty_id) REFERENCES GHC_FACULTY (Faculty_id),
+Constraint course_code_FK FOREIGN KEY (course_code) REFERENCES GHC_COURSE (course_code) on delete cascade
+);
+
+DELETE FROM GHC_EXPERTISE;
+DELETE FROM GHC_COURSE;
+DELETE FROM GHC_FACULTY;
+DELETE FROM GHC_DEPARTMENT;
+
+INSERT INTO GHC_DEPARTMENT
+VALUES (200, 'French');
+
+INSERT INTO GHC_FACULTY
+values (1, 'Barbara', 'Melissa', TO_DATE('Mar-1-2003','Mon-dd-YYYY'),null, 1,200);
+INSERT INTO GHC_FACULTY
+values (2, 'Barbara', 'Debra', TO_DATE('July-1-2010','Month-dd-YYYY'),null, 1,200);
+
+INSERT INTO GHC_COURSE
+values ('FREN101', 'Level 1 - French', 3);
+INSERT INTO GHC_COURSE
+values ('FREN201', 'Level 2 - French', 3);
+
+INSERT INTO GHC_EXPERTISE
+values (1, 'FREN101');
+INSERT INTO GHC_EXPERTISE
+values (2, 'FREN101');
+INSERT INTO GHC_EXPERTISE
+values (1, 'FREN201');
+
+-- Question 3
+UPDATE  GHC_FACULTY
+SET date_hired = TO_DATE('July-1-2012','Month-dd-YYYY')
+WHERE faculty_id = 1; 
+
+
+UPDATE  GHC_FACULTY
+SET is_active = 0
+WHERE faculty_id = 1; 
+
+-- Question 4
+exec SAVEPOINT SP1;
+DELETE FROM GHC_COURSE WHERE Course_code = 'FREN201';
+ rollback to savepoint  SP1;
